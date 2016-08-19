@@ -152,6 +152,61 @@ Phaser.Utils.extend(Phaser.Physics.P2.BodyDebug.prototype, {
     },
 
     /**
+    * Draws the P2 shapes to the Graphics object.
+    *
+    * @method Phaser.Physics.P2.BodyDebug#drawShape
+    */
+    drawShape: function(shape) {
+
+        var angle, color, i, lineColor, lw, offset, sprite, v, verts, vrot, _i, _ref1;
+
+        sprite = this.canvas;
+        sprite.clear();
+        color = parseInt(this.randomPastelHex(), 16);
+        lineColor = 0xff0000;
+        lw = this.lineWidth;
+
+        offset = shape.position || 0;
+        angle = shape.angle || 0;
+
+        if (shape instanceof p2.Circle)
+        {
+            this.drawCircle(sprite, offset[0] * this.ppu, offset[1] * this.ppu, angle, shape.radius * this.ppu, color, lw);
+        }
+        else if (shape instanceof p2.Capsule)
+        {
+            this.drawCapsule(sprite, offset[0] * this.ppu, offset[1] * this.ppu, angle, shape.length * this.ppu, shape.radius * this.ppu, lineColor, color, lw);
+        }
+        else if (shape instanceof p2.Plane)
+        {
+            this.drawPlane(sprite, offset[0] * this.ppu, -offset[1] * this.ppu, color, lineColor, lw * 5, lw * 10, lw * 10, this.ppu * 100, angle);
+        }
+        else if (shape instanceof p2.Line)
+        {
+            this.drawLine(sprite, shape.length * this.ppu, lineColor, lw);
+        }
+        else if (shape instanceof p2.Box)
+        {
+            this.drawRectangle(sprite, offset[0] * this.ppu, offset[1] * this.ppu, angle, shape.width * this.ppu, shape.height * this.ppu, lineColor, color, lw);
+        }
+        else if (shape instanceof p2.Convex)
+        {
+            verts = [];
+            vrot = p2.vec2.create();
+
+            for (i = _i = 0, _ref1 = shape.vertices.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i)
+            {
+                v = shape.vertices[i];
+                p2.vec2.rotate(vrot, v, angle);
+                verts.push([(vrot[0] + offset[0]) * this.ppu, -(vrot[1] + offset[1]) * this.ppu]);
+            }
+
+            this.drawConvex(sprite, verts, shape.triangles, lineColor, color, lw, this.settings.debugPolygons, [offset[0] * this.ppu, -offset[1] * this.ppu]);
+        }
+
+    },
+
+    /**
     * Draws a p2.Box to the Graphics object.
     *
     * @method Phaser.Physics.P2.BodyDebug#drawRectangle

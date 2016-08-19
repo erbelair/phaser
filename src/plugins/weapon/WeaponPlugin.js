@@ -220,6 +220,20 @@ Phaser.Weapon = function (game, parent) {
      */
     this.bulletFrame = '';
 
+    this.bulletSystem = 0;
+
+    this.bulletCollisionGroup = null;
+
+    this.bulletCollidesGroup = null;
+
+    this.bulletCollideCallback = null;
+
+    this.bulletPhysicsKey = '';
+
+    this.bulletPhysicsObject = '';
+
+    this.pauseDuration = { val: 0 };
+
     /**
      * Private var that holds the public `bulletClass` property.
      * @type {object}
@@ -446,16 +460,23 @@ Phaser.Weapon.KILL_STATIC_BOUNDS = 6;
 * @param {string} [key] - The Game.cache key of the image that this Sprite will use.
 * @param {integer|string} [frame] - If the Sprite image contains multiple frames you can specify which one to use here.
 * @param {Phaser.Group} [group] - Optional Group to add the object to. If not specified it will be added to the World group.
+* @param {number} [system=Phaser.Physics.ARCADE] - The physics system that will be used to create the body. Defaults to Arcade Physics.
+* @param {Phaser.Physics.CollisionGroup} [collisionGroup] - The Collision Group that this Bodies shapes will use.
+* @param {Phaser.Physics.CollisionGroup | array} [collidesGroup] - The Collision Group or Array of Collision Groups that this Bodies shapes will collide with.
+* @param {function} [collideCallback] - Optional callback that will be triggered when the bullet Body begins collision
+* @param {string} [physicsKey] - The key of the Physics Data file as stored in Game.Cache.
+* @param {string} [physicsObject] - The key of the object within the Physics data file that you wish to load the shape data from.
 * @return {Phaser.Weapon} This Weapon instance.
 */
-Phaser.Weapon.prototype.createBullets = function (quantity, key, frame, group) {
+Phaser.Weapon.prototype.createBullets = function (quantity, key, frame, group, system, collisionGroup, collidesGroup, collideCallback, physicsKey, physicsObject) {
 
     if (quantity === undefined) { quantity = 1; }
     if (group === undefined) { group = this.game.world; }
+    if (system === undefined) { system = Phaser.Physics.ARCADE; }
 
     if (!this.bullets)
     {
-        this.bullets = this.game.add.physicsGroup(Phaser.Physics.ARCADE, group);
+        this.bullets = this.game.add.physicsGroup(system, group);
         this.bullets.classType = this._bulletClass;
     }
 
@@ -469,10 +490,40 @@ Phaser.Weapon.prototype.createBullets = function (quantity, key, frame, group) {
 
         this.bullets.createMultiple(quantity, key, frame);
 
+        if (system === Phaser.Physics.P2JS)
+        {
+          this.bullets.forEach(function(bullet) {
+              bullet.body.setZeroDamping();
+              if (typeof physicsKey === 'string' && typeof physicsObject === 'string')
+              {
+                bullet.body.clearShapes();
+                bullet.body.addPhaserPolygon(physicsKey, physicsObject);
+              }
+              if (collisionGroup !== undefined && collisionGroup !== null)
+              {
+                bullet.body.setCollisionGroup(collisionGroup);
+              }
+              if (collidesGroup !== undefined && collidesGroup !== null)
+              {
+                bullet.body.collides(collidesGroup);
+              }
+              if (typeof collideCallback === 'function')
+              {
+                bullet.body.onBeginContact.add(collideCallback, bullet);
+              }
+          });
+        }
+
         this.bullets.setAll('data.bulletManager', this);
 
         this.bulletKey = key;
         this.bulletFrame = frame;
+        this.bulletSystem = system;
+        this.bulletCollisionGroup = collisionGroup;
+        this.bulletCollidesGroup = collidesGroup;
+        this.bulletCollideCallback = collideCallback;
+        this.bulletPhysicsKey = physicsKey;
+        this.bulletPhysicsObject = physicsObject;
     }
 
     return this;
@@ -608,7 +659,7 @@ Phaser.Weapon.prototype.update = function () {
         }
     }
 
-    if (this.autofire && this.game.time.now < this._nextFire)
+    if (this.autofire && this.game.time.now - this.pauseDuration.val >= this._nextFire)
     {
         this.fire();
     }
@@ -703,7 +754,7 @@ Phaser.Weapon.prototype.trackPointer = function (pointer, offsetX, offsetY) {
 */
 Phaser.Weapon.prototype.fire = function (from, x, y) {
 
-    if (this.game.time.now < this._nextFire || (this.fireLimit > 0 && this.shots === this.fireLimit))
+    if (this.game.time.now - this.pauseDuration.val < this._nextFire || (this.fireLimit > 0 && this.shots === this.fireLimit))
     {
         return false;
     }
@@ -797,7 +848,33 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
 
     if (this.autoExpandBulletsGroup)
     {
-        bullet = this.bullets.getFirstExists(false, true, fromX, fromY, this.bulletKey, this.bulletFrame);
+        bullet = this.bullets.getFirstExists(false, false, fromX, fromY, this.bulletKey, this.bulletFrame);
+
+        if (bullet === null)
+        {
+            bullet = this.bullets.create(fromX, fromY, this.bulletKey, this.bulletFrame);
+            if (this.bulletSystem === Phaser.Physics.P2JS)
+            {
+                bullet.body.setZeroDamping();
+                if (typeof this.bulletPhysicsKey === 'string' && typeof this.bulletPhysicsObject === 'string')
+                {
+                  bullet.body.clearShapes();
+                  bullet.body.addPhaserPolygon(this.bulletPhysicsKey, this.bulletPhysicsObject);
+                }
+                if (this.bulletCollisionGroup !== undefined && this.bulletCollisionGroup !== null)
+                {
+                  bullet.body.setCollisionGroup(this.bulletCollisionGroup);
+                }
+                if (this.bulletCollidesGroup !== undefined && this.bulletCollidesGroup !== null)
+                {
+                  bullet.body.collides(this.bulletCollidesGroup);
+                }
+                if (typeof this.bulletCollideCallback === 'function')
+                {
+                  bullet.body.onBeginContact.add(this.bulletCollideCallback, bullet);
+                }
+            }
+        }
 
         bullet.data.bulletManager = this;
     }
@@ -808,8 +885,14 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
 
     if (bullet)
     {
-        bullet.reset(fromX, fromY);
-
+        if (this.bulletSystem == Phaser.Physics.P2JS)
+        {
+          bullet.body.reset(fromX, fromY);
+        }
+        else
+        {
+          bullet.reset(fromX, fromY);
+        }
         bullet.data.fromX = fromX;
         bullet.data.fromY = fromY;
         bullet.data.killType = this.bulletKillType;
@@ -821,7 +904,14 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
             bullet.lifespan = this.bulletLifespan;
         }
 
-        bullet.angle = angle + this.bulletAngleOffset;
+        if (this.bulletSystem === Phaser.Physics.P2JS)
+        {
+          bullet.body.angle = angle + this.bulletAngleOffset;
+        }
+        else
+        {
+          bullet.angle = angle + this.bulletAngleOffset;
+        }
 
         //  Frames and Animations
         if (this.bulletAnimation !== '')
@@ -858,7 +948,14 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
         {
             if (this._data.customBody)
             {
-                bullet.body.setSize(this._data.width, this._data.height, this._data.offsetX, this._data.offsetY);
+                if (this.bulletSystem === Phaser.Physics.P2JS)
+                {
+                  bullet.body.setRectangle(this._data.width, this._data.height, this._data.offsetX, this._data.offsetY);
+                }
+                else
+                {
+                  bullet.body.setSize(this._data.width, this._data.height, this._data.offsetX, this._data.offsetY);
+                }
             }
 
             bullet.body.collideWorldBounds = this.bulletCollideWorldBounds;
@@ -866,10 +963,11 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
             bullet.data.bodyDirty = false;
         }
 
-        bullet.body.velocity.set(moveX, moveY);
+        bullet.body.velocity.x = moveX;
+        bullet.body.velocity.y = moveY;
         bullet.body.gravity.set(this.bulletGravity.x, this.bulletGravity.y);
 
-        this._nextFire = this.game.time.now + this.fireRate;
+        this._nextFire = this.game.time.now - this.pauseDuration.val + this.fireRate;
 
         this.shots++;
 
@@ -880,6 +978,11 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
             this.onFireLimit.dispatch(this, this.fireLimit);
         }
 
+        return true;
+    }
+    else
+    {
+        return false;
     }
 
 };
@@ -963,8 +1066,15 @@ Phaser.Weapon.prototype.setBulletBodyOffset = function (width, height, offsetX, 
     this._data.offsetY = offsetY;
 
     //  Update all bullets in the pool
-    this.bullets.callAll('body.setSize', 'body', width, height, offsetX, offsetY);
-    this.bullets.setAll('data.bodyDirty', false);
+    if (this.bulletSystem === Phaser.Physics.P2JS)
+    {
+      this.bullets.callAll('body.setRectangle', 'body', width, height, offsetX, offsetY);
+    }
+    else
+    {
+      this.bullets.callAll('body.setSize', 'body', width, height, offsetX, offsetY);
+      this.bullets.setAll('data.bodyDirty', false);
+    }
 
     return this;
 

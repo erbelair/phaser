@@ -1318,16 +1318,17 @@ Phaser.Physics.P2.Body.prototype = {
     * @param {string} object - The key of the object within the Physics data file that you wish to load the shape data from.
     * @returns {Array} A list of created fixtures to be used with Phaser.Physics.P2.FixtureList
     */
-    addPhaserPolygon: function (key, object) {
+    addPhaserPolygon: function (key, object, scale) {
 
         var data = this.game.cache.getPhysicsData(key, object);
+
         var createdFixtures = [];
 
         //  Cycle through the fixtures
         for (var i = 0; i < data.length; i++)
         {
             var fixtureData = data[i];
-            var shapesOfFixture = this.addFixture(fixtureData);
+            var shapesOfFixture = this.addFixture(fixtureData, scale);
 
             //  Always add to a group
             createdFixtures[fixtureData.filter.group] = createdFixtures[fixtureData.filter.group] || [];
@@ -1354,7 +1355,11 @@ Phaser.Physics.P2.Body.prototype = {
     * @param {string} fixtureData - The data for the fixture. It contains: isSensor, filter (collision) and the actual polygon shapes.
     * @return {array} An array containing the generated shapes for the given polygon.
     */
-    addFixture: function (fixtureData) {
+    addFixture: function (fixtureData, scale) {
+
+        if (scale === undefined || scale === null) {
+            scale = 1;
+        }
 
         var generatedShapes = [];
 
@@ -1366,8 +1371,8 @@ Phaser.Physics.P2.Body.prototype = {
             shape.sensor = fixtureData.isSensor;
 
             var offset = p2.vec2.create();
-            offset[0] = this.world.pxmi(fixtureData.circle.position[0] - this.sprite.width/2);
-            offset[1] = this.world.pxmi(fixtureData.circle.position[1] - this.sprite.height/2);
+            offset[0] = this.world.pxmi(fixtureData.circle.position[0] * scale - this.sprite.width/2);
+            offset[1] = this.world.pxmi(fixtureData.circle.position[1] * scale - this.sprite.height/2);
 
             this.data.addShape(shape, offset);
             generatedShapes.push(shape);
@@ -1384,7 +1389,7 @@ Phaser.Physics.P2.Body.prototype = {
 
                 for (var s = 0; s < shapes.length; s += 2)
                 {
-                    vertices.push([ this.world.pxmi(shapes[s]), this.world.pxmi(shapes[s + 1]) ]);
+                    vertices.push([ this.world.pxmi(shapes[s] * scale), this.world.pxmi(shapes[s + 1] * scale) ]);
                 }
 
                 var shape = new p2.Convex({ vertices: vertices });
@@ -1421,16 +1426,16 @@ Phaser.Physics.P2.Body.prototype = {
 
     /**
     * Reads the shape data from a physics data file stored in the Game.Cache and adds it as a polygon to this Body.
-    * 
+    *
     * As well as reading the data from the Cache you can also pass `null` as the first argument and a
     * physics data object as the second. When doing this you must ensure the structure of the object is correct in advance.
-    * 
+    *
     * For more details see the format of the Lime / Corona Physics Editor export.
     *
     * @method Phaser.Physics.P2.Body#loadPolygon
-    * @param {string} key - The key of the Physics Data file as stored in Game.Cache. Alternatively set to `null` and pass the 
+    * @param {string} key - The key of the Physics Data file as stored in Game.Cache. Alternatively set to `null` and pass the
     *     data as the 2nd argument.
-    * @param {string|object} object - The key of the object within the Physics data file that you wish to load the shape data from, 
+    * @param {string|object} object - The key of the object within the Physics data file that you wish to load the shape data from,
     *     or if key is null pass the actual physics data object itself as this parameter.
     * @return {boolean} True on success, else false.
     */

@@ -63,13 +63,19 @@ Phaser.GameObjectFactory.prototype = {
     * @param {string|Phaser.RenderTexture|Phaser.BitmapData|Phaser.Video|PIXI.Texture} [key] - The image used as a texture by the bullets during rendering. If a string Phaser will get for an entry in the Image Cache. Or it can be an instance of a RenderTexture, BitmapData, Video or PIXI.Texture.
     * @param {string|number} [frame] - If a Texture Atlas or Sprite Sheet is used this allows you to specify the frame to be used by the bullets. Use either an integer for a Frame ID or a string for a frame name.
     * @param {Phaser.Group} [group] - Optional Group to add the Weapon to. If not specified it will be added to the World group.
+    * @param {number} [system] - The physics system to start: Phaser.Physics.ARCADE, Phaser.Physics.P2JS
+    * @param {Phaser.Physics.CollisionGroup} [collisionGroup] - The Collision Group that this Bodies shapes will use.
+    * @param {Phaser.Physics.CollisionGroup | array} [collidesGroup] - The Collision Group or Array of Collision Groups that this Bodies shapes will collide with.
+    * @param {function} [collideCallback] - Optional callback that will be triggered when the bullet Body begins collision
+    * @param {string} [physicsKey] - The key of the Physics Data file as stored in Game.Cache.
+    * @param {string} [physicsObject] - The key of the object within the Physics data file that you wish to load the shape data from.
     * @returns {Phaser.Weapon} A Weapon instance.
     */
-    weapon: function (quantity, key, frame, group) {
+    weapon: function (quantity, key, frame, group, system, collisionGroup, collidesGroup, collideCallback, physicsKey, physicsObject) {
 
         var weapon = this.game.plugins.add(Phaser.Weapon);
 
-        weapon.createBullets(quantity, key, frame, group);
+        weapon.createBullets(quantity, key, frame, group, system, collisionGroup, collidesGroup, collideCallback, physicsKey, physicsObject);
 
         return weapon;
 

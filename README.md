@@ -311,6 +311,13 @@ You can read all about the philosophy behind Lazer [here](http://phaser.io/news/
 ![Change Log](http://phaser.io/images/github/div-change-log.png "Change Log")
 <a name="change-log"></a>
 
+## Version 2.6.1a - "HyperVoid" - 19th August 2016
+
+### New Features
+
+* P2 Physics bodies can now be scaled.
+* The Weapons plugin can now use P2 Physics bodies.
+
 ## Version 2.6.1 - "Caemlyn" - 11th July 2016
 
 ### Bug Fixes

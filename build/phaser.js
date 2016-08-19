@@ -7,7 +7,7 @@
 *
 * Phaser - http://phaser.io
 *
-* v2.6.1 "Caemlyn" - Built: Mon Jul 11 2016 09:59:51
+* v2.6.1 "Caemlyn" - Built: Tue Jul 19 2016 16:31:35
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm
 *
@@ -35279,7 +35279,7 @@ Object.defineProperty(Phaser.World.prototype, "randomY", {
 /**
 * This is where the magic happens. The Game object is the heart of your game,
 * providing quick access to common functions and handling the boot process.
-* 
+*
 * "Hell, there are no rules here - we're trying to accomplish something."
 *                                                       Thomas A. Edison
 *
@@ -35491,7 +35491,7 @@ Phaser.Game = function (width, height, renderer, parent, state, transparent, ant
     * @property {Phaser.Physics} physics - Reference to the physics manager.
     */
     this.physics = null;
-    
+
     /**
     * @property {Phaser.PluginManager} plugins - Reference to the plugin manager.
     */
@@ -36008,7 +36008,7 @@ Phaser.Game.prototype = {
         if (this.renderType !== Phaser.HEADLESS)
         {
             this.stage.smoothed = this.antialias;
-            
+
             Phaser.Canvas.addToDOM(this.canvas, this.parent, false);
             Phaser.Canvas.setTouchAction(this.canvas);
         }
@@ -36466,11 +36466,11 @@ Object.defineProperty(Phaser.Game.prototype, "paused", {
 });
 
 /**
- * 
+ *
  * "Deleted code is debugged code." - Jeff Sickel
  *
  * ヽ(〃＾▽＾〃)ﾉ
- * 
+ *
 */
 
 /**
@@ -48048,7 +48048,7 @@ Phaser.GameObjectFactory.prototype = {
 
     /**
     * Adds an existing display object to the game world.
-    * 
+    *
     * @method Phaser.GameObjectFactory#existing
     * @param {any} object - An instance of Phaser.Sprite, Phaser.Button or any other display object.
     * @return {any} The child that was added to the World.
@@ -48077,13 +48077,19 @@ Phaser.GameObjectFactory.prototype = {
     * @param {string|Phaser.RenderTexture|Phaser.BitmapData|Phaser.Video|PIXI.Texture} [key] - The image used as a texture by the bullets during rendering. If a string Phaser will get for an entry in the Image Cache. Or it can be an instance of a RenderTexture, BitmapData, Video or PIXI.Texture.
     * @param {string|number} [frame] - If a Texture Atlas or Sprite Sheet is used this allows you to specify the frame to be used by the bullets. Use either an integer for a Frame ID or a string for a frame name.
     * @param {Phaser.Group} [group] - Optional Group to add the Weapon to. If not specified it will be added to the World group.
+    * @param {number} [system] - The physics system to start: Phaser.Physics.ARCADE, Phaser.Physics.P2JS
+    * @param {Phaser.Physics.CollisionGroup} [collisionGroup] - The Collision Group that this Bodies shapes will use.
+    * @param {Phaser.Physics.CollisionGroup | array} [collidesGroup] - The Collision Group or Array of Collision Groups that this Bodies shapes will collide with.
+    * @param {function} [collideCallback] - Optional callback that will be triggered when the bullet Body begins collision
+    * @param {string} [physicsKey] - The key of the Physics Data file as stored in Game.Cache.
+    * @param {string} [physicsObject] - The key of the object within the Physics data file that you wish to load the shape data from.
     * @returns {Phaser.Weapon} A Weapon instance.
     */
-    weapon: function (quantity, key, frame, group) {
+    weapon: function (quantity, key, frame, group, system, collisionGroup, collidesGroup, collideCallback, physicsKey, physicsObject) {
 
         var weapon = this.game.plugins.add(Phaser.Weapon);
 
-        weapon.createBullets(quantity, key, frame, group);
+        weapon.createBullets(quantity, key, frame, group, system, collisionGroup, collidesGroup, collideCallback, physicsKey, physicsObject);
 
         return weapon;
 
@@ -48091,10 +48097,10 @@ Phaser.GameObjectFactory.prototype = {
 
     /**
     * Create a new `Image` object.
-    * 
+    *
     * An Image is a light-weight object you can use to display anything that doesn't need physics or animation.
-    * 
-    * It can still rotate, scale, crop and receive input events. 
+    *
+    * It can still rotate, scale, crop and receive input events.
     * This makes it perfect for logos, backgrounds, simple buttons and other non-Sprite graphics.
     *
     * @method Phaser.GameObjectFactory#image
@@ -48140,14 +48146,14 @@ Phaser.GameObjectFactory.prototype = {
     * Create a new Creature Animation object.
     *
     * Creature is a custom Game Object used in conjunction with the Creature Runtime libraries by Kestrel Moon Studios.
-    * 
+    *
     * It allows you to display animated Game Objects that were created with the [Creature Automated Animation Tool](http://www.kestrelmoon.com/creature/).
-    * 
+    *
     * Note 1: You can only use Phaser.Creature objects in WebGL enabled games. They do not work in Canvas mode games.
     *
     * Note 2: You must use a build of Phaser that includes the CreatureMeshBone.js runtime and gl-matrix.js, or have them
     * loaded before your Phaser game boots.
-    * 
+    *
     * See the Phaser custom build process for more details.
     *
     * @method Phaser.GameObjectFactory#creature
@@ -48171,7 +48177,7 @@ Phaser.GameObjectFactory.prototype = {
 
     /**
     * Create a tween on a specific object.
-    * 
+    *
     * The object can be any JavaScript object or Phaser object such as Sprite.
     *
     * @method Phaser.GameObjectFactory#tween
@@ -48203,7 +48209,7 @@ Phaser.GameObjectFactory.prototype = {
 
     /**
     * A Group is a container for display objects that allows for fast pooling, recycling and collision checks.
-    * 
+    *
     * A Physics Group is the same as an ordinary Group except that is has enableBody turned on by default, so any Sprites it creates
     * are automatically given a physics body.
     *
@@ -48440,11 +48446,11 @@ Phaser.GameObjectFactory.prototype = {
     * Create a new BitmapText object.
     *
     * BitmapText objects work by taking a texture file and an XML file that describes the font structure.
-    * It then generates a new Sprite object for each letter of the text, proportionally spaced out and aligned to 
+    * It then generates a new Sprite object for each letter of the text, proportionally spaced out and aligned to
     * match the font structure.
-    * 
-    * BitmapText objects are less flexible than Text objects, in that they have less features such as shadows, fills and the ability 
-    * to use Web Fonts. However you trade this flexibility for pure rendering speed. You can also create visually compelling BitmapTexts by 
+    *
+    * BitmapText objects are less flexible than Text objects, in that they have less features such as shadows, fills and the ability
+    * to use Web Fonts. However you trade this flexibility for pure rendering speed. You can also create visually compelling BitmapTexts by
     * processing the font texture in an image editor first, applying fills and any other effects required.
     *
     * To create multi-line text insert \r, \n or \r\n escape codes into the text string.
@@ -67005,7 +67011,7 @@ Phaser.Time.prototype = {
 * The desired frame rate of the game.
 *
 * This is used is used to calculate the physic / logic multiplier and how to apply catch-up logic updates.
-* 
+*
 * @name Phaser.Time#desiredFps
 * @property {integer} desiredFps - The desired frame rate of the game. Defaults to 60.
 */
@@ -67021,7 +67027,7 @@ Object.defineProperty(Phaser.Time.prototype, "desiredFps", {
 
         this._desiredFps = value;
 
-        //  Set the physics elapsed time... this will always be 1 / this.desiredFps 
+        //  Set the physics elapsed time... this will always be 1 / this.desiredFps
         //  because we're using fixed time steps in game.update
         this.physicsElapsed = 1 / value;
 
@@ -91075,17 +91081,17 @@ Phaser.Physics.P2.Body = function (game, sprite, x, y, mass) {
     this.gravity = new Phaser.Point();
 
     /**
-    * Dispatched when a first contact is created between shapes in two bodies. 
+    * Dispatched when a first contact is created between shapes in two bodies.
     * This event is fired during the step, so collision has already taken place.
-    * 
+    *
     * The event will be sent 5 arguments in this order:
-    * 
+    *
     * The Phaser.Physics.P2.Body it is in contact with. *This might be null* if the Body was created directly in the p2 world.
     * The p2.Body this Body is in contact with.
     * The Shape from this body that caused the contact.
     * The Shape from the contact body.
     * The Contact Equation data array.
-    * 
+    *
     * @property {Phaser.Signal} onBeginContact
     */
     this.onBeginContact = new Phaser.Signal();
@@ -91093,14 +91099,14 @@ Phaser.Physics.P2.Body = function (game, sprite, x, y, mass) {
     /**
     * Dispatched when contact ends between shapes in two bodies.
     * This event is fired during the step, so collision has already taken place.
-    * 
+    *
     * The event will be sent 4 arguments in this order:
-    * 
+    *
     * The Phaser.Physics.P2.Body it is in contact with. *This might be null* if the Body was created directly in the p2 world.
     * The p2.Body this Body has ended contact with.
     * The Shape from this body that caused the original contact.
     * The Shape from the contact body.
-    * 
+    *
     * @property {Phaser.Signal} onEndContact
     */
     this.onEndContact = new Phaser.Signal();
@@ -91526,7 +91532,7 @@ Phaser.Physics.P2.Body.prototype = {
 
     /**
     * Apply impulse to a point relative to the body.
-    * This could for example be a point on the Body surface. An impulse is a force added to a body during a short 
+    * This could for example be a point on the Body surface. An impulse is a force added to a body during a short
     * period of time (impulse = force * time). Impulses will be added to Body.velocity and Body.angularVelocity.
     *
     * @method Phaser.Physics.P2.Body#applyImpulse
@@ -91542,8 +91548,8 @@ Phaser.Physics.P2.Body.prototype = {
 
     /**
     * Apply impulse to a point local to the body.
-    * 
-    * This could for example be a point on the Body surface. An impulse is a force added to a body during a short 
+    *
+    * This could for example be a point on the Body surface. An impulse is a force added to a body during a short
     * period of time (impulse = force * time). Impulses will be added to Body.velocity and Body.angularVelocity.
     *
     * @method Phaser.Physics.P2.Body#applyImpulseLocal
@@ -91559,8 +91565,8 @@ Phaser.Physics.P2.Body.prototype = {
 
     /**
     * Apply force to a world point.
-    * 
-    * This could for example be a point on the RigidBody surface. Applying force 
+    *
+    * This could for example be a point on the RigidBody surface. Applying force
     * this way will add to Body.force and Body.angularForce.
     *
     * @method Phaser.Physics.P2.Body#applyForce
@@ -92317,16 +92323,17 @@ Phaser.Physics.P2.Body.prototype = {
     * @param {string} object - The key of the object within the Physics data file that you wish to load the shape data from.
     * @returns {Array} A list of created fixtures to be used with Phaser.Physics.P2.FixtureList
     */
-    addPhaserPolygon: function (key, object) {
+    addPhaserPolygon: function (key, object, scale) {
 
         var data = this.game.cache.getPhysicsData(key, object);
+
         var createdFixtures = [];
 
         //  Cycle through the fixtures
         for (var i = 0; i < data.length; i++)
         {
             var fixtureData = data[i];
-            var shapesOfFixture = this.addFixture(fixtureData);
+            var shapesOfFixture = this.addFixture(fixtureData, scale);
 
             //  Always add to a group
             createdFixtures[fixtureData.filter.group] = createdFixtures[fixtureData.filter.group] || [];
@@ -92353,7 +92360,11 @@ Phaser.Physics.P2.Body.prototype = {
     * @param {string} fixtureData - The data for the fixture. It contains: isSensor, filter (collision) and the actual polygon shapes.
     * @return {array} An array containing the generated shapes for the given polygon.
     */
-    addFixture: function (fixtureData) {
+    addFixture: function (fixtureData, scale) {
+
+        if (scale === undefined || scale === null) {
+            scale = 1;
+        }
 
         var generatedShapes = [];
 
@@ -92365,8 +92376,8 @@ Phaser.Physics.P2.Body.prototype = {
             shape.sensor = fixtureData.isSensor;
 
             var offset = p2.vec2.create();
-            offset[0] = this.world.pxmi(fixtureData.circle.position[0] - this.sprite.width/2);
-            offset[1] = this.world.pxmi(fixtureData.circle.position[1] - this.sprite.height/2);
+            offset[0] = this.world.pxmi(fixtureData.circle.position[0] * scale - this.sprite.width/2);
+            offset[1] = this.world.pxmi(fixtureData.circle.position[1] * scale - this.sprite.height/2);
 
             this.data.addShape(shape, offset);
             generatedShapes.push(shape);
@@ -92383,7 +92394,7 @@ Phaser.Physics.P2.Body.prototype = {
 
                 for (var s = 0; s < shapes.length; s += 2)
                 {
-                    vertices.push([ this.world.pxmi(shapes[s]), this.world.pxmi(shapes[s + 1]) ]);
+                    vertices.push([ this.world.pxmi(shapes[s] * scale), this.world.pxmi(shapes[s + 1] * scale) ]);
                 }
 
                 var shape = new p2.Convex({ vertices: vertices });
@@ -92420,16 +92431,16 @@ Phaser.Physics.P2.Body.prototype = {
 
     /**
     * Reads the shape data from a physics data file stored in the Game.Cache and adds it as a polygon to this Body.
-    * 
+    *
     * As well as reading the data from the Cache you can also pass `null` as the first argument and a
     * physics data object as the second. When doing this you must ensure the structure of the object is correct in advance.
-    * 
+    *
     * For more details see the format of the Lime / Corona Physics Editor export.
     *
     * @method Phaser.Physics.P2.Body#loadPolygon
-    * @param {string} key - The key of the Physics Data file as stored in Game.Cache. Alternatively set to `null` and pass the 
+    * @param {string} key - The key of the Physics Data file as stored in Game.Cache. Alternatively set to `null` and pass the
     *     data as the 2nd argument.
-    * @param {string|object} object - The key of the object within the Physics data file that you wish to load the shape data from, 
+    * @param {string|object} object - The key of the object within the Physics data file that you wish to load the shape data from,
     *     or if key is null pass the actual physics data object itself as this parameter.
     * @return {boolean} True on success, else false.
     */
@@ -93128,6 +93139,61 @@ Phaser.Utils.extend(Phaser.Physics.P2.BodyDebug.prototype, {
 
                 i++;
             }
+        }
+
+    },
+
+    /**
+    * Draws the P2 shapes to the Graphics object.
+    *
+    * @method Phaser.Physics.P2.BodyDebug#drawShape
+    */
+    drawShape: function(shape) {
+
+        var angle, color, i, lineColor, lw, offset, sprite, v, verts, vrot, _i, _ref1;
+
+        sprite = this.canvas;
+        sprite.clear();
+        color = parseInt(this.randomPastelHex(), 16);
+        lineColor = 0xff0000;
+        lw = this.lineWidth;
+
+        offset = shape.position || 0;
+        angle = shape.angle || 0;
+
+        if (shape instanceof p2.Circle)
+        {
+            this.drawCircle(sprite, offset[0] * this.ppu, offset[1] * this.ppu, angle, shape.radius * this.ppu, color, lw);
+        }
+        else if (shape instanceof p2.Capsule)
+        {
+            this.drawCapsule(sprite, offset[0] * this.ppu, offset[1] * this.ppu, angle, shape.length * this.ppu, shape.radius * this.ppu, lineColor, color, lw);
+        }
+        else if (shape instanceof p2.Plane)
+        {
+            this.drawPlane(sprite, offset[0] * this.ppu, -offset[1] * this.ppu, color, lineColor, lw * 5, lw * 10, lw * 10, this.ppu * 100, angle);
+        }
+        else if (shape instanceof p2.Line)
+        {
+            this.drawLine(sprite, shape.length * this.ppu, lineColor, lw);
+        }
+        else if (shape instanceof p2.Box)
+        {
+            this.drawRectangle(sprite, offset[0] * this.ppu, offset[1] * this.ppu, angle, shape.width * this.ppu, shape.height * this.ppu, lineColor, color, lw);
+        }
+        else if (shape instanceof p2.Convex)
+        {
+            verts = [];
+            vrot = p2.vec2.create();
+
+            for (i = _i = 0, _ref1 = shape.vertices.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i)
+            {
+                v = shape.vertices[i];
+                p2.vec2.rotate(vrot, v, angle);
+                verts.push([(vrot[0] + offset[0]) * this.ppu, -(vrot[1] + offset[1]) * this.ppu]);
+            }
+
+            this.drawConvex(sprite, verts, shape.triangles, lineColor, color, lw, this.settings.debugPolygons, [offset[0] * this.ppu, -offset[1] * this.ppu]);
         }
 
     },
@@ -100208,6 +100274,20 @@ Phaser.Weapon = function (game, parent) {
      */
     this.bulletFrame = '';
 
+    this.bulletSystem = 0;
+
+    this.bulletCollisionGroup = null;
+
+    this.bulletCollidesGroup = null;
+
+    this.bulletCollideCallback = null;
+
+    this.bulletPhysicsKey = '';
+
+    this.bulletPhysicsObject = '';
+
+    this.pauseDuration = { val: 0 };
+
     /**
      * Private var that holds the public `bulletClass` property.
      * @type {object}
@@ -100434,16 +100514,23 @@ Phaser.Weapon.KILL_STATIC_BOUNDS = 6;
 * @param {string} [key] - The Game.cache key of the image that this Sprite will use.
 * @param {integer|string} [frame] - If the Sprite image contains multiple frames you can specify which one to use here.
 * @param {Phaser.Group} [group] - Optional Group to add the object to. If not specified it will be added to the World group.
+* @param {number} [system=Phaser.Physics.ARCADE] - The physics system that will be used to create the body. Defaults to Arcade Physics.
+* @param {Phaser.Physics.CollisionGroup} [collisionGroup] - The Collision Group that this Bodies shapes will use.
+* @param {Phaser.Physics.CollisionGroup | array} [collidesGroup] - The Collision Group or Array of Collision Groups that this Bodies shapes will collide with.
+* @param {function} [collideCallback] - Optional callback that will be triggered when the bullet Body begins collision
+* @param {string} [physicsKey] - The key of the Physics Data file as stored in Game.Cache.
+* @param {string} [physicsObject] - The key of the object within the Physics data file that you wish to load the shape data from.
 * @return {Phaser.Weapon} This Weapon instance.
 */
-Phaser.Weapon.prototype.createBullets = function (quantity, key, frame, group) {
+Phaser.Weapon.prototype.createBullets = function (quantity, key, frame, group, system, collisionGroup, collidesGroup, collideCallback, physicsKey, physicsObject) {
 
     if (quantity === undefined) { quantity = 1; }
     if (group === undefined) { group = this.game.world; }
+    if (system === undefined) { system = Phaser.Physics.ARCADE; }
 
     if (!this.bullets)
     {
-        this.bullets = this.game.add.physicsGroup(Phaser.Physics.ARCADE, group);
+        this.bullets = this.game.add.physicsGroup(system, group);
         this.bullets.classType = this._bulletClass;
     }
 
@@ -100457,10 +100544,40 @@ Phaser.Weapon.prototype.createBullets = function (quantity, key, frame, group) {
 
         this.bullets.createMultiple(quantity, key, frame);
 
+        if (system === Phaser.Physics.P2JS)
+        {
+          this.bullets.forEach(function(bullet) {
+              bullet.body.setZeroDamping();
+              if (typeof physicsKey === 'string' && typeof physicsObject === 'string')
+              {
+                bullet.body.clearShapes();
+                bullet.body.addPhaserPolygon(physicsKey, physicsObject);
+              }
+              if (collisionGroup !== undefined && collisionGroup !== null)
+              {
+                bullet.body.setCollisionGroup(collisionGroup);
+              }
+              if (collidesGroup !== undefined && collidesGroup !== null)
+              {
+                bullet.body.collides(collidesGroup);
+              }
+              if (typeof collideCallback === 'function')
+              {
+                bullet.body.onBeginContact.add(collideCallback, bullet);
+              }
+          });
+        }
+
         this.bullets.setAll('data.bulletManager', this);
 
         this.bulletKey = key;
         this.bulletFrame = frame;
+        this.bulletSystem = system;
+        this.bulletCollisionGroup = collisionGroup;
+        this.bulletCollidesGroup = collidesGroup;
+        this.bulletCollideCallback = collideCallback;
+        this.bulletPhysicsKey = physicsKey;
+        this.bulletPhysicsObject = physicsObject;
     }
 
     return this;
@@ -100596,7 +100713,7 @@ Phaser.Weapon.prototype.update = function () {
         }
     }
 
-    if (this.autofire && this.game.time.now < this._nextFire)
+    if (this.autofire && this.game.time.now - this.pauseDuration.val >= this._nextFire)
     {
         this.fire();
     }
@@ -100691,7 +100808,7 @@ Phaser.Weapon.prototype.trackPointer = function (pointer, offsetX, offsetY) {
 */
 Phaser.Weapon.prototype.fire = function (from, x, y) {
 
-    if (this.game.time.now < this._nextFire || (this.fireLimit > 0 && this.shots === this.fireLimit))
+    if (this.game.time.now - this.pauseDuration.val < this._nextFire || (this.fireLimit > 0 && this.shots === this.fireLimit))
     {
         return false;
     }
@@ -100785,7 +100902,33 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
 
     if (this.autoExpandBulletsGroup)
     {
-        bullet = this.bullets.getFirstExists(false, true, fromX, fromY, this.bulletKey, this.bulletFrame);
+        bullet = this.bullets.getFirstExists(false, false, fromX, fromY, this.bulletKey, this.bulletFrame);
+
+        if (bullet === null)
+        {
+            bullet = this.bullets.create(fromX, fromY, this.bulletKey, this.bulletFrame);
+            if (this.bulletSystem === Phaser.Physics.P2JS)
+            {
+                bullet.body.setZeroDamping();
+                if (typeof this.bulletPhysicsKey === 'string' && typeof this.bulletPhysicsObject === 'string')
+                {
+                  bullet.body.clearShapes();
+                  bullet.body.addPhaserPolygon(this.bulletPhysicsKey, this.bulletPhysicsObject);
+                }
+                if (this.bulletCollisionGroup !== undefined && this.bulletCollisionGroup !== null)
+                {
+                  bullet.body.setCollisionGroup(this.bulletCollisionGroup);
+                }
+                if (this.bulletCollidesGroup !== undefined && this.bulletCollidesGroup !== null)
+                {
+                  bullet.body.collides(this.bulletCollidesGroup);
+                }
+                if (typeof this.bulletCollideCallback === 'function')
+                {
+                  bullet.body.onBeginContact.add(this.bulletCollideCallback, bullet);
+                }
+            }
+        }
 
         bullet.data.bulletManager = this;
     }
@@ -100796,8 +100939,14 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
 
     if (bullet)
     {
-        bullet.reset(fromX, fromY);
-
+        if (this.bulletSystem == Phaser.Physics.P2JS)
+        {
+          bullet.body.reset(fromX, fromY);
+        }
+        else
+        {
+          bullet.reset(fromX, fromY);
+        }
         bullet.data.fromX = fromX;
         bullet.data.fromY = fromY;
         bullet.data.killType = this.bulletKillType;
@@ -100809,7 +100958,14 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
             bullet.lifespan = this.bulletLifespan;
         }
 
-        bullet.angle = angle + this.bulletAngleOffset;
+        if (this.bulletSystem === Phaser.Physics.P2JS)
+        {
+          bullet.body.angle = angle + this.bulletAngleOffset;
+        }
+        else
+        {
+          bullet.angle = angle + this.bulletAngleOffset;
+        }
 
         //  Frames and Animations
         if (this.bulletAnimation !== '')
@@ -100846,7 +101002,14 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
         {
             if (this._data.customBody)
             {
-                bullet.body.setSize(this._data.width, this._data.height, this._data.offsetX, this._data.offsetY);
+                if (this.bulletSystem === Phaser.Physics.P2JS)
+                {
+                  bullet.body.setRectangle(this._data.width, this._data.height, this._data.offsetX, this._data.offsetY);
+                }
+                else
+                {
+                  bullet.body.setSize(this._data.width, this._data.height, this._data.offsetX, this._data.offsetY);
+                }
             }
 
             bullet.body.collideWorldBounds = this.bulletCollideWorldBounds;
@@ -100854,10 +101017,11 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
             bullet.data.bodyDirty = false;
         }
 
-        bullet.body.velocity.set(moveX, moveY);
+        bullet.body.velocity.x = moveX;
+        bullet.body.velocity.y = moveY;
         bullet.body.gravity.set(this.bulletGravity.x, this.bulletGravity.y);
 
-        this._nextFire = this.game.time.now + this.fireRate;
+        this._nextFire = this.game.time.now - this.pauseDuration.val + this.fireRate;
 
         this.shots++;
 
@@ -100868,6 +101032,11 @@ Phaser.Weapon.prototype.fire = function (from, x, y) {
             this.onFireLimit.dispatch(this, this.fireLimit);
         }
 
+        return true;
+    }
+    else
+    {
+        return false;
     }
 
 };
@@ -100951,8 +101120,15 @@ Phaser.Weapon.prototype.setBulletBodyOffset = function (width, height, offsetX, 
     this._data.offsetY = offsetY;
 
     //  Update all bullets in the pool
-    this.bullets.callAll('body.setSize', 'body', width, height, offsetX, offsetY);
-    this.bullets.setAll('data.bodyDirty', false);
+    if (this.bulletSystem === Phaser.Physics.P2JS)
+    {
+      this.bullets.callAll('body.setRectangle', 'body', width, height, offsetX, offsetY);
+    }
+    else
+    {
+      this.bullets.callAll('body.setSize', 'body', width, height, offsetX, offsetY);
+      this.bullets.setAll('data.bodyDirty', false);
+    }
 
     return this;
 
